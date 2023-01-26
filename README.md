@@ -1,6 +1,7 @@
 <img width="150" src="assets/bagman.png" alt="Bagman's Logo" align="right"/>
 
 # Bagman 
+![main branch workflow](https://github.com/github/docs/actions/workflows/main.yml/badge.svg)
 
 Bagman is a real-time, bidirectional, plug-and-play infrastructure to fulfill your application's real-time need.
 
