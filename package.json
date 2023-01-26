@@ -8,7 +8,7 @@
     "build": "tsc -p .",
     "debug": "DEBUG =* npm run dev",
     "dev": "npx ts-node --esm --experimentalSpecifierResolution node ./index.ts",
-    "test": "vitest",
+    "test": "vitest --run",
     "test:coverage": "npm run test -- --coverage"
   },
   "keywords": [],
