@@ -28,7 +28,7 @@ Bagman is a real-time, bidirectional, plug-and-play infrastructure to fulfill yo
     ```
 ## Usage 
 ```
-Working in Progress
+test branch protection
 ```
 
 ## Contributing
