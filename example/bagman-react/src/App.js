@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { Bagman } from "bagman";
 
@@ -9,8 +9,6 @@ function App() {
   const [event, setEvent] = useState("");
   const [data, setData] = useState("");
   const [messages, setMessages] = useState([]);
-
-  console.log("messages", messages)
 
   const channelRef = useRef(null);
   const bagmanRef = useRef(null);
