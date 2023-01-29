@@ -1,0 +1,6 @@
+/* Custom Class-less version for React */
+
+$semantic-root-element: "#root";
+$enable-semantic-container: true;
+$enable-classes: true;
+@import "@picocss/pico/scss/pico";

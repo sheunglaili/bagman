@@ -19,9 +19,13 @@ Bagman is a real-time, bidirectional, plug-and-play infrastructure to fulfill yo
 
 1. `git clone` this project
 2. Run the following in the root directory of the project
-```shell
-docker-compose up -d
-```
+    ```shell
+    docker-compose up -d
+    ```
+    Run the following to spin up multiple instance of Bagman
+    ```shell
+    docker-compose up -d --scale bagman=3 
+    ```
 ## Usage 
 ```
 Working in Progress
