@@ -1,5 +1,5 @@
 {
-  "extends": "@tsconfig/node-lts-strictest-esm",
+  "extends": "@tsconfig/recommended",
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src"
