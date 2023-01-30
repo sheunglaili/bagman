@@ -1,0 +1,83 @@
+version: '3.8'
+services:
+  reverse-proxy:
+    # The official v2 Traefik docker image
+    image: traefik:v2.9
+    # Enables the web UI and tells Traefik to listen to docker
+    command: --api.insecure=true --providers.docker --log.level=DEBUG
+    ports:
+      # The HTTP port
+      - "8080:80"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8081:8080"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+  bagman:
+    build: ../
+    expose:
+      - "8080"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - OTLP_TRACES_EXPORT_URL=http://tempo:4318/v1/traces
+      - OTLP_METRICS_EXPORT_URL=http://prometheus:4318/v1/metrics
+    labels:
+      - "traefik.http.routers.bagman.rule=PathPrefix(`/`)"
+      - traefik.http.services.bagman.loadBalancer.sticky.cookie.name=server_id
+      - traefik.http.services.bagman.loadBalancer.sticky.cookie.httpOnly=true
+      - traefik.http.services.bagman.loadbalancer.server.port=8080 # Enable CORS headers
+      - "traefik.http.middlewares.cors.headers.accesscontrolallowmethods=*"
+      - "traefik.http.middlewares.cors.headers.accesscontrolalloworiginlist=*"
+      - "traefik.http.middlewares.cors.headers.accesscontrolmaxage=100"
+      - "traefik.http.middlewares.cors.headers.addvaryheader=true"
+      - "traefik.http.routers.bagman.middlewares=cors"
+  # To eventually offload to Tempo...
+  tempo:
+    image: grafana/tempo:latest
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml
+      - ./tempo-data:/tmp/tempo
+    ports:
+      - "14268" # jaeger ingest
+      - "3200" # tempo
+      - "4317" # otlp grpc
+      - "4318" # otlp http
+      - "9411" # zipkin
+  prometheus:
+    image: prom/prometheus:latest
+    command:
+      - --config.file=/etc/prometheus.yaml
+      - --web.enable-remote-write-receiver
+      - --enable-feature=exemplar-storage
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus.yaml
+    ports:
+      - "9090:9090"
+  grafana:
+    image: grafana/grafana:9.3.2
+    volumes:
+      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - ./grafana-dashboards.yaml:/etc/grafana/provisioning/dashboards/main.yaml
+      - ./dashboard-definitions:/var/lib/grafana/dashboards
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor
+    ports:
+      - "3000:3000"
+  redis:
+    image: redis:7
+    restart: always
+    # expose:
+    #   - "6379"
+    command: redis-server --save 20 1 --loglevel verbose
+    volumes:
+      - cache:/data
+    labels:
+      - "traefik.enable=false"
+volumes:
+  cache:
+    driver: local

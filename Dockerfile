@@ -20,4 +20,4 @@ COPY --from=builder /usr/bagman/dist .
 
 EXPOSE 8080 
 
-CMD ["node", "--experimental-specifier-resolution=node", "index.js"]
+CMD ["npm", "run", "start"]

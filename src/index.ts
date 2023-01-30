@@ -3,7 +3,6 @@ import { createServer } from "http";
 import dotenv from "dotenv";
 import pino from "pino";
 import { Server } from "socket.io";
-import { instrument } from "@socket.io/admin-ui";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { Redis } from "ioredis";
 
@@ -52,12 +51,6 @@ function initialiseIO(ioServer: MainServer) {
 
     ioServer.on('connection', (socket) => {
         registerClientChannels(io, socket, logger);
-    });
-
-    // might replace in favour of open-telemetry
-    instrument(io, {
-        auth: false,
-        mode: "development"
     });
 }
 
