@@ -7,6 +7,7 @@ const isDev = process.env.NODE_ENV === "development";
 
 module.exports = withNextra({
   assetPrefix: !isDev ? "/bagman/" : "",
+  basePath: "/bagman",
   images: {
     unoptimized: true
   }

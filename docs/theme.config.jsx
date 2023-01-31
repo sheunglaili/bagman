@@ -3,7 +3,7 @@ import { useConfig } from "nextra-theme-docs";
 
 export default {
     logo: <span>Bagman</span>,
-    docsRepositoryBase: 'https://github.com/sheunglaili/bagman/tree/main/docs',
+    docsRepositoryBase: 'https://github.com/sheunglaili/bagman/tree/main/docs/pages',
     project: {
         link: 'https://github.com/sheunglaili/bagman',
     },
