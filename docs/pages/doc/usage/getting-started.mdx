@@ -1,0 +1,39 @@
+import { Tab, Tabs } from "nextra-theme-docs";
+
+# Getting Started
+
+After [starting bagman locally](../introduction/installation), install any of the client sdk we provided:
+- [Javascript/Typescript Client](./client-js)
+- Swift Client (Coming soon)
+- Java Client (Coming soon)
+- Dart Client (Coming soon)
+
+<Tabs items={['Javascript/Typescript']}>
+    <Tab> 
+        ```sh
+        npm install bagman
+        ```
+        ```typescript
+        import { Bagman } from "bagman";
+
+        // initialise client
+        const bagman = new Bagman({ url: "<bagman-server-url>"});
+
+        // subscribe to a channel
+        const channel = await bagman.subscribe("<channel>");
+        // listen to a event in a channel
+        // await to make sure listen is sucessful
+        await channel.listen("explosion", (data) => {
+            // do something with the data
+        });
+
+        // emit some data to the channel
+        // await to make sure emit is successful
+        await channel.emit("greetings", {
+            "hello": "world"
+        });
+        ```
+        ### Example 
+        To see how to use the client on a react app, check out this [example](https://github.com/sheunglaili/bagman/tree/main/example/bagman-react)
+    </Tab>
+</Tabs>

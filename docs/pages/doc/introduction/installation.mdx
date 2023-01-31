@@ -1,0 +1,36 @@
+# Installation 
+
+## Prerequisite
+
+- [Docker](https://www.docker.com)
+- [Docker compose](https://docs.docker.com/compose/)
+
+## Running localluy
+
+To run Bagman locally, we've prepared a docker-compose.yml file for your local development & trial. 
+
+Simply clone the repository into your local machine by:
+```sh
+git clone https://github.com/sheunglaili/bagman.git
+```
+
+```sh
+cd bagman;
+docker-compose -f ./deploy/docker-compose.yml up -d
+```
+
+This will spin up a couple services, including: 
+- Bagman - for serving socket.io connections. 
+- Redis - for communication between Bagman instances
+- Traefik - for proxying & load balancing requests
+- Prometheus - for storing metrics for Bagman server
+- Grafana Tempo - for storing requests & websocket traces
+- Grafana - for visualising traces & metrics collected 
+
+To spin up multiple instances of Bagman, you can run: 
+```sh
+docker-compose -f ./deploy/docker-compose.yml up -d --scale bagman=3 # or whatever number you like
+```
+
+The Bagman server should started now, serving traffic via Traefik on port 8080.
+If you are interested in the metrics & traces, visit: http://localhost:3000 for the Grafana dashboard.
