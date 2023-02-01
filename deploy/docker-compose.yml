@@ -22,6 +22,13 @@ services:
       - REDIS_PORT=6379
       - OTLP_TRACES_EXPORT_URL=http://tempo:4318/v1/traces
       - OTLP_METRICS_EXPORT_URL=http://prometheus:4318/v1/metrics
+    sysctls:
+      - net.core.somaxconn=1000000
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 1000000
+        hard: 1000000
     labels:
       - "traefik.http.routers.bagman.rule=PathPrefix(`/`)"
       - traefik.http.services.bagman.loadBalancer.sticky.cookie.name=server_id
@@ -40,11 +47,11 @@ services:
       - ./tempo.yaml:/etc/tempo.yaml
       - ./tempo-data:/tmp/tempo
     ports:
-      - "14268" # jaeger ingest
-      - "3200" # tempo
-      - "4317" # otlp grpc
-      - "4318" # otlp http
-      - "9411" # zipkin
+      - "14268:14268" # jaeger ingest
+      - "3200:3200" # tempo
+      - "4317:4317" # otlp grpc
+      - "4318:4318" # otlp http
+      - "9411:9411" # zipkin
   prometheus:
     image: prom/prometheus:latest
     command:
