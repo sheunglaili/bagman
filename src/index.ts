@@ -1,7 +1,7 @@
-import { createServer } from "http";
 
 import dotenv from "dotenv";
 import pino from "pino";
+import { App } from "uWebSockets.js";
 import { Server } from "socket.io";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { Redis } from "ioredis";
@@ -40,32 +40,39 @@ function initialiseRedis(): { pub: Redis, sub: Redis } {
 
 function initialiseIO(ioServer: MainServer) {
     const { pub, sub } = initialiseRedis();
+    const app = App();
 
+    // use uWebSockets.js as underlying websocket implementation
+    ioServer.attachApp(app);
     // use redis adapter for cross cluster communication
     ioServer.adapter(createAdapter(pub, sub));
     // logging incoming connections, might replace with open-telemetry
-    ioServer.use((socket, next) => {
-        logger.info({ ipAddress: socket.handshake.address }, "New incoming connections. ");
-        next();
-    });
+    // ioServer.use((socket, next) => {
+    //     logger.info({ ipAddress: socket.handshake.address }, "New incoming connections. ");
+    //     next();
+    // });
 
     ioServer.on('connection', (socket) => {
         registerClientChannels(io, socket, logger);
     });
-}
 
-const httpServer = createServer();
+    const port = parseInt(process.env['PORT'] || "8080");
+
+    app.listen(port, (listened) => {
+        if (listened) {
+            logger.info(`Listening on PORT ${port}`)
+        } else {
+            logger.error(`Failed to listen on PORT ${port}`)
+        }
+    });
+}
 
 const io = new Server<
     ServerToClientEvents,
     ClientToServerEvents,
     InterServerEvents,
     any
->(httpServer);
+>();
 
 initialiseIO(io);
 
-const port = parseInt(process.env['PORT'] || "8080");
-
-httpServer.listen(port)
-    .on('listening', () => logger.info(`Listening on PORT ${port}`));

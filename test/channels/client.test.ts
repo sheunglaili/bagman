@@ -68,7 +68,7 @@ describe('registerClientChannels', () => {
         const channel = 'my-channel';
         const event = 'my-event';
         const data = { message: 'hello' };
-        const didClientReceiveBroadcast = wait((done) => clientSockets[1]!.on(event, done))
+        const didClientReceiveBroadcast = wait((done) => clientSockets[1]!.on(`${channel}:${event}`, done))
         await wait((done) => clientSockets[0]!.emit('client:subscribe', { channel }, done));
         await wait((done) => clientSockets[1]!.emit('client:subscribe', { channel }, done));
         await wait((done) => clientSockets[0]!.emit('client:emit', { channel, event, data }, done));
