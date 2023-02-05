@@ -1,0 +1,22 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: bagman-ingress
+  namespace: default
+spec:
+  entryPoints:
+    - web
+  routes:
+  - match: PathPrefix(`/socket.io`)
+    kind: Rule
+    middlewares:                   
+    - name: cors            
+      namespace: default   
+    services:
+    - name: bagman
+      port: 8080
+      passHostHeader: true
+      sticky:
+        cookie:
+          httpOnly: true
+          name: cookie

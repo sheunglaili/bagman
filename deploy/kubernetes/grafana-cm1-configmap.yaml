@@ -1,0 +1,23 @@
+apiVersion: v1
+data:
+  grafana-dashboards.yaml: |-
+    apiVersion: 1
+
+    providers:
+      - name: "Dashboard provider"
+        orgId: 1
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: false
+        options:
+          path: /var/lib/grafana/dashboards
+          foldersFromFilesStructure: true
+kind: ConfigMap
+metadata:
+  annotations:
+    use-subpath: "true"
+  creationTimestamp: null
+  labels:
+    io.kompose.service: grafana
+  name: grafana-cm1

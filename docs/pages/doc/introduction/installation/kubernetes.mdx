@@ -1,0 +1,36 @@
+# Installation 
+
+## Prerequisite
+
+Either one of the following will be needed in order to run Bagman on K8s locally.
+
+- [Microk8s](https://microk8s.io)
+- [Minikube](https://minikube.sigs.k8s.io/docs/)
+- [K3s](https://k3s.io)
+
+## Running locally
+
+To run Bagman locally on a kubernetes, run the following: 
+1. Change directory to kubernetes deployment configuration
+
+```sh
+cd deploy/kubernetes
+```
+2. Install [Traefik Custom Resources Definition](https://doc.traefik.io/traefik/providers/kubernetes-crd/#configuration-requirements)
+```sh
+# Install Traefik Resource Definitions:
+kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v2.9/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml
+
+# Install RBAC for Traefik:
+kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v2.9/docs/content/reference/dynamic-configuration/kubernetes-crd-rbac.yml
+```
+3. Apply configuration yaml for Bagman
+```sh
+kubernetes apply -f . --recursive
+```
+
+## Running with Helm 
+
+```
+Working in Progress
+```
