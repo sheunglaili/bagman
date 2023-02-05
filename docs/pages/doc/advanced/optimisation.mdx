@@ -1,0 +1,54 @@
+# Optimisation
+
+To maximise the throughput of the Bagman server, there are few things you will have to configure on your host system which your containers run on. 
+1. [The maximum number of open file descriptor](#maximum-number-of-open-file-descriptor)
+2. [The local port range which tcp listen on](#local-port-range)
+
+import { Callout } from 'nextra-theme-docs'
+
+<Callout> 
+If you running your containers with [Rancher-Desktop](https://rancherdesktop.io/) or [Podman](https://podman.io), 
+you will have to update the above parameters inside the VM they provision on your system as well!
+</Callout>
+
+## Maximum number of open file descriptor
+
+To increase the number of open file descriptor, run the following command: 
+
+For Mac & Linux: 
+```sh
+ulimit -n 65535 
+```
+
+## Local port range 
+
+To check what local port range you are having on your host machine: 
+
+For Mac: 
+```sh
+sysctl net.inet.ip.portrange.first net.inet.ip.portrange.last
+# should respond with: 
+# net.inet.ip.portrange.first: 49152
+# net.inet.ip.portrange.last: 65535
+```
+
+For Linux: 
+```sh
+sysctl net.ipv4.ip_local_port_range 
+# should respond with: 
+# net.ipv4.ip_local_port_range=49152 65535
+# values might differ depends on your system
+```
+
+To expand the local port range, we recommend setting the from 1024-65535 in order to maximise the tcp port that can be use
+
+For Mac: 
+```sh
+sudo sysctl net.inet.ip.portrange.first=1024 # to set first port in range to 1024
+sudo sysctl net.inet.ip.portrange.last=65535 # to set last port in range to 65535
+```
+
+For Linux:
+```sh
+sudo sysctl -w net.ipv4.ip_local_port_range="1024 65535" # to set port range to 1024-65535
+```
