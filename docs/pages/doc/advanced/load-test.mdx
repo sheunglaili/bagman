@@ -1,0 +1,12 @@
+# Load test 
+
+To maximise result of the load test, we recommend you to first [fine-tune your system](/doc/advanced/optimisation) to get the best out of load test.
+
+To run the load-test, run the following command on root directory: 
+```sh
+npm run load-test
+```
+You should then able to see client start to ramp up connection on the console with:
+```
+client count: <number-of-client-connected> ; average messages received per second: <average-message-received-on-all-connected-client> 
+```
