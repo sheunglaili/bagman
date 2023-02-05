@@ -2,8 +2,8 @@ import { Bagman } from "bagman";
 
 const URL = process.env.URL || "http://localhost:8080";
 const MAX_CLIENTS = 1000000;
-const CLIENT_CREATION_INTERVAL_IN_MS = 10;
-const EMIT_INTERVAL_IN_MS = 5000;
+const CLIENT_CREATION_INTERVAL_IN_MS = 2;
+const EMIT_INTERVAL_IN_MS = 1000;
 
 let clientCount = 0;
 let lastReport = new Date().getTime();
@@ -16,15 +16,17 @@ const createClient = async () => {
 
         const channel = await client.subscribe("testing channel");
 
-        // await channel.publish("hello", "world");
-        // const emitInterval = setInterval(async () => {
-        // }, EMIT_INTERVAL_IN_MS);
+        await channel.publish("hello", "world");
+        const emitInterval = setInterval(async () => {
+        }, EMIT_INTERVAL_IN_MS);
 
-        
+        client.listen("connect_error", (reason) => {
+            console.log('failed to connect to server ', reason);
+        })
         client.listen("disconnect", (...args) => {
-            // clearInterval(emitInterval);
+            clearInterval(emitInterval);
             client.close();
-            // console.log('client disconnected with reason: ', args);
+            console.log('client disconnected with reason: ', args);
             clientCount--;
         });
 
@@ -32,7 +34,6 @@ const createClient = async () => {
             messagesSinceLastReport++;
         });
 
-        // ++clientCount;
         if (++clientCount < MAX_CLIENTS) {
             setTimeout(createClient, CLIENT_CREATION_INTERVAL_IN_MS);
         }
