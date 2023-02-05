@@ -1,0 +1,28 @@
+# github 
+.github
+assets 
+
+# deployment configuration
+deploy/**
+
+# documentation
+docs
+
+# examples 
+example 
+
+# load-test 
+load-test 
+
+# compiled src 
+dist
+
+# tests 
+test
+coverage
+
+# project configs
+README.md
+vitest.config.ts
+.gitignore
+LICENSE

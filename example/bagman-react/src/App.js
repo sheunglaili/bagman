@@ -14,7 +14,7 @@ function App() {
   const bagmanRef = useRef(null);
   function getBagman() {
     if (bagmanRef.current === null) {
-      bagmanRef.current = new Bagman({});
+      bagmanRef.current = new Bagman({ url: "http://localhost:8080/"});
     }
     return bagmanRef.current;
   }

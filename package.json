@@ -11,7 +11,8 @@
     "start": "node --require ./tracing.js ./index.js",
     "test": "vitest --run",
     "test:coverage": "npm run test -- --coverage",
-    "load-test": "node -r ts-node/register load-test/load-test.ts"
+    "load-test": "node -r ts-node/register load-test/load-test.ts",
+    "docs": "cd ./docs && npm run dev"
   },
   "keywords": [],
   "author": "",

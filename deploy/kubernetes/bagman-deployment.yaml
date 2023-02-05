@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: bagman-deployment
+  name: bagman
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: bagman-deployment
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.network/docker-default: "true"
+        io.kompose.service: bagman-deployment
+    spec:
+      containers:
+        - env:
+            - name: OTLP_METRICS_EXPORT_URL
+              value: http://prometheus:4318/v1/metrics
+            - name: OTLP_TRACES_EXPORT_URL
+              value: http://tempo:4318/v1/traces
+            - name: REDIS_HOST
+              value: redis
+            - name: REDIS_PORT
+              value: "6379"
+          image: shzl/bagman:0.0.1
+          name: bagman
+          ports:
+            - name: socket
+              containerPort: 8080
+          readinessProbe:
+            tcpSocket:
+              port: socket
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: socket
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          securityContext:
+            sysctls:
+            - name: fs.file-max
+              value: "65000" 
+            - name: net.core.somaxconn
+              value: "65000" # match the port range number approximately
+            - name: net.ipv4.ip_local_port_range
+              value: "1024 65535"
+          resources: {}
+      initContainers:
+        - name: increase-fd-ulimit
+          image: busybox
+          command: ["sh", "-c", "ulimit -n 65000"]
+          securityContext:
+            privileged: true
+      restartPolicy: Always
+status: {}

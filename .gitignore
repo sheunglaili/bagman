@@ -130,4 +130,4 @@ dist
 .pnp.*
 
 # ignore docker volumes 
-deploy/tempo-data
+deploy/**/tempo-data
