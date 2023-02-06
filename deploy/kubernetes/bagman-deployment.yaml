@@ -28,7 +28,7 @@ spec:
               value: redis
             - name: REDIS_PORT
               value: "6379"
-          image: shzl/bagman:0.0.1
+          image: ghcr.io/sheunglaili/bagman:0.0.1
           name: bagman
           ports:
             - name: socket
