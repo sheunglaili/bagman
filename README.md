@@ -3,32 +3,41 @@
 # Bagman 
 ![main branch workflow](https://github.com/sheunglaili/bagman/actions/workflows/main.yml/badge.svg)
 
-Bagman is a real-time, bidirectional, plug-and-play infrastructure to fulfill your application's real-time need.
+Bagman is a powerful and flexible real-time infrastructure that helps you provision real-time communication with your client applications with ease. Built on top of [Socket.io](https://socket.io) and [Redis](https://redis.io), Bagman offers a hassle-free solution for real-time communication, allowing you to focus on your core business logic instead of worrying about scaling issues and maintaining your own instances of socket.io server.
 
 ## Table of Contents
-- [Prerequisites](#prerequisites)
 - [Getting Started](#getting-started)
 - [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
 
-## Prerequisites
-1. [Docker](https://docker.com)
-
 ## Getting started
 
-1. `git clone` this project
-2. Run the following in the root directory of the project
-    ```shell
-    docker-compose up -d
-    ```
-    Run the following to spin up multiple instance of Bagman
-    ```shell
-    docker-compose up -d --scale bagman=3 
-    ```
-## Usage 
-```
-Working in Progress
+[Checkout the documentation!](https://sheunglaili.github.io/bagman/doc/usage/getting-started)! 
+
+## Usage
+
+The simplest way is to start with the [TS client](https://github.com/sheunglaili/bagman-js)!
+
+```typescript
+import { Bagman } from "bagman";
+
+// initialise client
+const bagman = new Bagman({ url: "<bagman-server-url>"});
+
+// subscribe to a channel
+const channel = await bagman.subscribe("<channel>");
+// listen to a event in a channel
+// await to make sure listen is sucessful
+await channel.listen("explosion", (data) => {
+    // do something with the data
+});
+
+// emit some data to the channel
+// await to make sure emit is successful
+await channel.emit("greetings", {
+    "hello": "world"
+});
 ```
 
 ## Contributing
