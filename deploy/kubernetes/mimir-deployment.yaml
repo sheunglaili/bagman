@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f ./docker/docker-compose.yml --volumes=configMap
+    kompose.version: 1.28.0 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: mimir
+  name: mimir
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: mimir
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f ./docker/docker-compose.yml --volumes=configMap
+        kompose.version: 1.28.0 (HEAD)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/docker-default: "true"
+        io.kompose.service: mimir
+    spec:
+      containers:
+        - args:
+            - --config.file=/etc/mimir/demo.yaml
+          image: grafana/mimir:latest
+          name: mimir
+          ports:
+            - containerPort: 9009
+          resources: {}
+          volumeMounts:
+            - mountPath: /etc/mimir/demo.yaml
+              name: mimir-cm0
+              subPath: demo.yaml
+      restartPolicy: Always
+      volumes:
+        - configMap:
+            items:
+              - key: mimir.yaml
+                path: demo.yaml
+            name: mimir-cm0
+          name: mimir-cm0
+status: {}

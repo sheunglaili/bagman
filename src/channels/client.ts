@@ -1,4 +1,6 @@
 import type { Logger } from "pino";
+import otel from "@opentelemetry/api";
+
 import type { EmissionData, MainServer, MainSocket, SubscriptionData, UnsubscriptionData } from "../types";
 import { OperationError } from '../error';
 
@@ -37,6 +39,15 @@ export function registerClientChannels(io: MainServer, socket: MainSocket, logge
         if (!socket.rooms.has(channel)) {
             throw new OperationError(`Client does not belongs in channel: ${channel}.`);
         }
+
+        // record metrics asynchorously
+        (async function() {
+            const meter = otel.metrics.getMeter('bagman');
+            const messagesCounter = meter.createCounter('total.messages.count')
+            // can extract as server-side emit to ask for sockets size only
+            const clientsCount = await socket.to(channel).fetchSockets().then(sockets => sockets.length);
+            messagesCounter.add(clientsCount);
+        })()
         // prefix event with channel to make sure global event are not leaked
         // into channel event
         socket.to(channel).emit(`${channel}:${event}`, data);

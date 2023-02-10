@@ -5,13 +5,23 @@ import { App } from "uWebSockets.js";
 import { Server } from "socket.io";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { Redis } from "ioredis";
+import otel from "@opentelemetry/api";
 
 import { registerClientChannels } from "./channels/client";
-import type { ClientToServerEvents, InterServerEvents, MainServer, ServerToClientEvents } from "./types";
+import type { ClientToServerEvents, InterServerEvents, MainServer, MainSocket, ServerToClientEvents } from "./types";
 
 // load config
 dotenv.config();
 const logger = pino();
+
+function registerMetrics(socket: MainSocket) {
+    const meter = otel.metrics.getMeter('bagman');
+    const connectionCounter = meter.createUpDownCounter('active.connetions.count');
+    connectionCounter.add(1);
+
+    // register disconnect event
+    socket.on('disconnect', () => connectionCounter.add(-1));
+}
 
 function initialiseRedis(): { pub: Redis, sub: Redis } {
     logger.info(`connecting to redis ${process.env['REDIS_HOST']}:${process.env['REDIS_PORT']}`)
@@ -54,6 +64,7 @@ function initialiseIO(ioServer: MainServer) {
 
     ioServer.on('connection', (socket) => {
         registerClientChannels(io, socket, logger);
+        registerMetrics(socket);
     });
 
     const port = parseInt(process.env['PORT'] || "8080");

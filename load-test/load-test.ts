@@ -1,8 +1,8 @@
 import { Bagman } from "bagman";
 
 const URL = process.env.URL || "http://localhost:8080";
-const MAX_CLIENTS = 1000000;
-const CLIENT_CREATION_INTERVAL_IN_MS = 2;
+const MAX_CLIENTS = 500;
+const CLIENT_CREATION_INTERVAL_IN_MS = 10;
 const EMIT_INTERVAL_IN_MS = 1000;
 
 let clientCount = 0;
@@ -16,8 +16,8 @@ const createClient = async () => {
 
         const channel = await client.subscribe("testing channel");
 
-        await channel.publish("hello", "world");
         const emitInterval = setInterval(async () => {
+            await channel.publish("hello", "world");
         }, EMIT_INTERVAL_IN_MS);
 
         client.listen("connect_error", (reason) => {

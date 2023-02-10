@@ -18,11 +18,12 @@ services:
     build: ../../
     expose:
       - "8080"
+      - "9464" # for prometheus
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - OTLP_TRACES_EXPORT_URL=http://tempo:4318/v1/traces
-      - OTLP_METRICS_EXPORT_URL=http://prometheus:4318/v1/metrics
+      - OTLP_METRICS_EXPORT_URL=http://mimir:9009/otlp/v1/metrics
     sysctls:
       - net.core.somaxconn=65000
       - net.ipv4.ip_local_port_range=1024 65535
@@ -45,25 +46,22 @@ services:
   tempo:
     image: grafana/tempo:latest
     command: [ "-config.file=/etc/tempo.yaml" ]
+    environment:
+      - TZ=Europe/London
     volumes:
       - ./tempo.yaml:/etc/tempo.yaml
       - ./tempo-data:/tmp/tempo
+    expose:
+      - 3200 # tempo
+      - 4317 # otlp grpc
+      - 4318 # otlp http
+  mimir:
+    image: 'grafana/mimir:latest'
+    command: --config.file=/etc/mimir/demo.yaml
     ports:
-      - "14268:14268" # jaeger ingest
-      - "3200:3200" # tempo
-      - "4317:4317" # otlp grpc
-      - "4318:4318" # otlp http
-      - "9411:9411" # zipkin
-  prometheus:
-    image: prom/prometheus:latest
-    command:
-      - --config.file=/etc/prometheus.yaml
-      - --web.enable-remote-write-receiver
-      - --enable-feature=exemplar-storage
+        - '9009:9009'
     volumes:
-      - ./prometheus.yaml:/etc/prometheus.yaml
-    ports:
-      - "9090:9090"
+        - './mimir.yaml:/etc/mimir/demo.yaml'
   grafana:
     image: grafana/grafana:9.3.2
     volumes:
@@ -83,8 +81,6 @@ services:
     expose:
       - "6379"
     command: redis-server --save 20 1 --loglevel verbose
-    # volumes:
-    #   - cache:/data
     labels:
       - "traefik.enable=false"
 volumes:

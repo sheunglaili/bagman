@@ -44,7 +44,7 @@ const provider = new NodeTracerProvider({
 
 
 const traceExporter = new OTLPTraceExporter({
-    url: process.env.OTLP_TRACES_EXPORT_URL
+    url: process.env.OTLP_TRACES_EXPORT_URL,
 });
 const processer = new BatchSpanProcessor(traceExporter);
 
@@ -52,11 +52,12 @@ provider.addSpanProcessor(processer);
 provider.register();
 
 const metricExporter = new OTLPMetricExporter({
-    url: process.env.OTLP_METRICS_EXPORT_URL
+    url: process.env.OTLP_METRICS_EXPORT_URL,
 });
 
 const metricReader = new PeriodicExportingMetricReader({
     exporter: metricExporter,
+    exportIntervalMillis: 5000
 });
 
 const meterProvider = new MeterProvider({

@@ -21,7 +21,7 @@ spec:
       containers:
         - env:
             - name: OTLP_METRICS_EXPORT_URL
-              value: http://prometheus:4318/v1/metrics
+              value: http://mimir:9009/otlp/v1/metrics
             - name: OTLP_TRACES_EXPORT_URL
               value: http://tempo:4318/v1/traces
             - name: REDIS_HOST
@@ -43,14 +43,6 @@ spec:
               port: socket
             initialDelaySeconds: 15
             periodSeconds: 20
-          securityContext:
-            sysctls:
-            - name: fs.file-max
-              value: "65000" 
-            - name: net.core.somaxconn
-              value: "65000" # match the port range number approximately
-            - name: net.ipv4.ip_local_port_range
-              value: "1024 65535"
           resources: {}
       initContainers:
         - name: increase-fd-ulimit
@@ -59,4 +51,13 @@ spec:
           securityContext:
             privileged: true
       restartPolicy: Always
+      securityContext:
+        sysctls:
+        # requires enable unsafe sysctls options in kubelet
+        # - name: fs.file-max
+        #   value: "65000" 
+        # - name: net.core.somaxconn
+        #   value: "65000" # match the port range number approximately
+        - name: net.ipv4.ip_local_port_range
+          value: "1024 65535"
 status: {}

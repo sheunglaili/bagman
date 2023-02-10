@@ -35,8 +35,6 @@ spec:
             - mountPath: /etc/tempo.yaml
               name: tempo-cm0
               subPath: tempo.yaml
-            - mountPath: /tmp/tempo
-              name: tempo-cm1
       restartPolicy: Always
       volumes:
         - configMap:
@@ -45,7 +43,4 @@ spec:
                 path: tempo.yaml
             name: tempo-cm0
           name: tempo-cm0
-        - configMap:
-            name: tempo-cm1
-          name: tempo-cm1
 status: {}
