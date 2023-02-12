@@ -136,7 +136,7 @@ data:
             "orientation": "auto",
             "reduceOptions": {
               "calcs": [
-                "sum"
+                "lastNotNull"
               ],
               "fields": "",
               "values": false
@@ -227,7 +227,7 @@ data:
           "type": "table"
         }
       ],
-      "refresh": "1d",
+      "refresh": "5s",
       "schemaVersion": 37,
       "style": "dark",
       "tags": [],
@@ -235,7 +235,7 @@ data:
         "list": []
       },
       "time": {
-        "from": "now-6h",
+        "from": "now-30m",
         "to": "now"
       },
       "timepicker": {},

@@ -7,8 +7,9 @@ import { createAdapter } from "@socket.io/redis-adapter";
 import { Redis } from "ioredis";
 import otel from "@opentelemetry/api";
 
-import { registerClientChannels } from "./channels/client";
+import { registerChannelHandlers } from "./handlers/client";
 import type { ClientToServerEvents, InterServerEvents, MainServer, MainSocket, ServerToClientEvents } from "./types";
+import { registerInterserverHandler } from "./handlers/interserver";
 
 // load config
 dotenv.config();
@@ -55,15 +56,16 @@ function initialiseIO(ioServer: MainServer) {
     // use uWebSockets.js as underlying websocket implementation
     ioServer.attachApp(app);
     // use redis adapter for cross cluster communication
+    // @ts-expect-error - resolve types error temporarily
     ioServer.adapter(createAdapter(pub, sub));
     // logging incoming connections, might replace with open-telemetry
     // ioServer.use((socket, next) => {
     //     logger.info({ ipAddress: socket.handshake.address }, "New incoming connections. ");
     //     next();
     // });
-
+    registerInterserverHandler(ioServer);
     ioServer.on('connection', (socket) => {
-        registerClientChannels(io, socket, logger);
+        registerChannelHandlers(io, socket, logger);
         registerMetrics(socket);
     });
 

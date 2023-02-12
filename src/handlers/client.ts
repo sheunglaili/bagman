@@ -4,7 +4,7 @@ import otel from "@opentelemetry/api";
 import type { EmissionData, MainServer, MainSocket, SubscriptionData, UnsubscriptionData } from "../types";
 import { OperationError } from '../error';
 
-export function registerClientChannels(io: MainServer, socket: MainSocket, logger: Logger) {
+export function registerChannelHandlers(io: MainServer, socket: MainSocket, logger: Logger) {
 
     function wrap(handler: (...args: any[]) => void | Promise<void>) {
         return async function (...args: any[]) {
@@ -44,9 +44,20 @@ export function registerClientChannels(io: MainServer, socket: MainSocket, logge
         (async function() {
             const meter = otel.metrics.getMeter('bagman');
             const messagesCounter = meter.createCounter('total.messages.count')
-            // can extract as server-side emit to ask for sockets size only
-            const clientsCount = await socket.to(channel).fetchSockets().then(sockets => sockets.length);
-            messagesCounter.add(clientsCount);
+
+            // calls to cluster servers to get sockets count for corresponding channel.
+            const totalClientsEmitted = await new Promise<number>((resolve) => {
+                io.serverSideEmit('bagman:socket-counts', { channel }, async (err, responses) => {
+                    if (err) {
+                        logger.error(`some server didn't respond with socket-counts: ${err}`)
+                    }
+                    const countsFromOtherNode = responses.reduce((prev, curr) => prev + curr.count, 0);
+                    const currentNodeCount = await socket.in(channel).local.fetchSockets().then(sockets => sockets.length);
+                    console.log("emitted message count ", currentNodeCount + countsFromOtherNode);
+                    resolve(currentNodeCount + countsFromOtherNode);
+                });
+            })
+            messagesCounter.add(totalClientsEmitted);
         })()
         // prefix event with channel to make sure global event are not leaked
         // into channel event

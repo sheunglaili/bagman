@@ -11,13 +11,14 @@ export type ClientToServerEvents = {
 }
 
 export type InterServerEvents = {
+    'bagman:socket-counts': (data: SocketCountData, cb: SocketCountAckCallback) => Promise<void> | void;
 }
 
 export type BaseAck = {
     status: "ok" | "error",
     message?: string
 }
-export type BaseAckCallback<Ack extends BaseAck> = (e: Ack) => void
+export type BaseAckCallback<Ack = any> = (e: Ack) => void
 
 export type SubscriptionData = {
     channel: string
@@ -36,6 +37,14 @@ export type EmissionData<Data = any> = {
 };
 export type EmissionAck = BaseAck;
 export type EmissionAckCallback = BaseAckCallback<EmissionAck>;
+
+export type SocketCountData = {
+    channel: string
+}
+export type SocketCountAck = {
+    count: number
+}
+export type SocketCountAckCallback = BaseAckCallback<SocketCountAck>;
 
 export type MainServer = Server<ServerToClientEvents, ClientToServerEvents, InterServerEvents, any>;
 export type MainSocket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, any>;
