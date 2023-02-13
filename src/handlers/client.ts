@@ -53,7 +53,6 @@ export function registerChannelHandlers(io: MainServer, socket: MainSocket, logg
                     }
                     const countsFromOtherNode = responses.reduce((prev, curr) => prev + curr.count, 0);
                     const currentNodeCount = await socket.in(channel).local.fetchSockets().then(sockets => sockets.length);
-                    console.log("emitted message count ", currentNodeCount + countsFromOtherNode);
                     resolve(currentNodeCount + countsFromOtherNode);
                 });
             })

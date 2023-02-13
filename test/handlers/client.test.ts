@@ -1,21 +1,13 @@
-import type { Logger } from "pino";
-import { Socket } from "socket.io-client";
 import { describe, afterAll, vi, expect, it, afterEach, beforeAll } from 'vitest';
-import { registerChannelHandlers } from '../../src/handlers/client';
 import { TestServer } from "../test-server";
 import { wait } from "../utils";
 
 describe('registerClientChannels', () => {
-    let testServer: TestServer,
-        clients: Socket[],
-        logger: Logger;
+    let testServer: TestServer;
 
     beforeAll(() => new Promise(((done) => {
-        logger = { info: vi.fn(), error: vi.fn() } as unknown as Logger;
-
         testServer = new TestServer();
         testServer.listen(async () => {
-            clients = await testServer.clients(2);
             done();
         });
     })));
@@ -26,17 +18,19 @@ describe('registerClientChannels', () => {
                 socket.leave(room);
             })
         })
+        testServer.sockets = [];
     });
 
     afterAll(() => {
         testServer.close();
-        clients.forEach((socket) => socket.close());
     });
 
     it('subscribes to the correct channel', async () => {
-        registerChannelHandlers(testServer.io, testServer.sockets[0], logger);
+        testServer.server.registerHandlers();
 
         const channel = 'my-channel';
+
+        const clients = await testServer.clients(1);
 
         await wait((done) => clients[0]!.emit('client:subscribe', { channel }, done));
 
@@ -44,9 +38,12 @@ describe('registerClientChannels', () => {
     });
 
     it('unsubscribes from the correct channel', async () => {
-        registerChannelHandlers(testServer.io, testServer.sockets[0]!, logger);
+        testServer.server.registerHandlers();
 
         const channel = 'my-channel';
+
+        const clients = await testServer.clients(1);
+
         await wait((done) => clients[0]!.emit('client:subscribe', { channel }, done));
         await wait((done) => clients[0]!.emit('client:unsubscribe', { channel }, done));
 
@@ -54,12 +51,14 @@ describe('registerClientChannels', () => {
     });
 
     it('emits events to the correct channel', async () => {
-        registerChannelHandlers(testServer.io, testServer.sockets[0]!, logger);
-        registerChannelHandlers(testServer.io, testServer.sockets[1]!, logger);
+        testServer.server.registerHandlers();
 
         const channel = 'my-channel';
         const event = 'my-event';
         const data = { message: 'hello' };
+
+        const clients = await testServer.clients(2);
+
         const didClientReceiveBroadcast = wait((done) => clients[1]!.on(`${channel}:${event}`, done))
         await wait((done) => clients[0]!.emit('client:subscribe', { channel }, done));
         await wait((done) => clients[1]!.emit('client:subscribe', { channel }, done));
@@ -70,11 +69,13 @@ describe('registerClientChannels', () => {
     });
 
     it('throws an error when the client does not belong to the channel', async () => {
-        registerChannelHandlers(testServer.io, testServer.sockets[0]!, logger);
+        testServer.server.registerHandlers();
 
         const channel = 'my-channel';
         const event = 'my-event';
         const data = { message: 'hello' };
+
+        const clients = await testServer.clients(1);
 
         await expect(new Promise((done) => clients[0]!.emit('client:emit', { channel, event, data }, done))).resolves.toEqual({
             "status": "error",
