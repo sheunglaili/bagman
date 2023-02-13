@@ -56,9 +56,9 @@ export class BagmanServer {
     }
 
     registerMetrics() {
-        const meter = otel.metrics.getMeter('bagman');
-        const counter = meter.createUpDownCounter('active.connections.count');
         this.io.on('connection', (socket) => {
+            const meter = otel.metrics.getMeter('bagman');
+            const counter = meter.createUpDownCounter('active.connections.count');
             counter.add(1);
             socket.on('disconnect', () => counter.add(-1));
         })
