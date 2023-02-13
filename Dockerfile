@@ -1,4 +1,4 @@
-FROM node:16 as builder
+FROM node:19 as builder
 
 WORKDIR /usr/bagman
 
@@ -10,7 +10,7 @@ COPY tsconfig.json .
 RUN npm install
 RUN npm run build
 
-FROM node:16 
+FROM node:19 
 
 WORKDIR /usr/bagman
 COPY package.json ./

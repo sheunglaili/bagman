@@ -51,7 +51,6 @@ export class BagmanServer {
         sub.on('error', (err) => this.logger.error(err, `Sub client failed to connect to Redis ${this.redisOptions.host}:${this.redisOptions.port}`));
 
         // use redis adapter for cross cluster communication
-        // @ts-expect-error - resolve types error temporarily
         this.io.adapter(createAdapter(pub, sub))
     }
 
