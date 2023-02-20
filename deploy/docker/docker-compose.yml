@@ -22,8 +22,8 @@ services:
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - OTLP_TRACES_EXPORT_URL=http://tempo:4318/v1/traces
-      - OTLP_METRICS_EXPORT_URL=http://mimir:9009/otlp/v1/metrics
+      - OTLP_TRACES_EXPORT_URL=http://otel-collector:4318/v1/traces
+      - OTLP_METRICS_EXPORT_URL=http://otel-collector:4318/v1/metrics
     sysctls:
       - net.core.somaxconn=65000
       - net.ipv4.ip_local_port_range=1024 65535
@@ -58,10 +58,19 @@ services:
   mimir:
     image: 'grafana/mimir:latest'
     command: --config.file=/etc/mimir/demo.yaml
-    ports:
-        - '9009:9009'
+    expose: 
+      - 9009
     volumes:
         - './mimir.yaml:/etc/mimir/demo.yaml'
+  otel-collector:
+    image: otel/opentelemetry-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "13133:13133" # health_check extension
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP http receiver
   grafana:
     image: grafana/grafana:9.3.2
     volumes:

@@ -1,0 +1,25 @@
+receivers:
+  # Data sources: traces, metrics, logs
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+processors:
+  batch:
+
+exporters:
+  otlphttp:
+    traces_endpoint: http://tempo:4318/v1/traces
+    metrics_endpoint: http://mimir:9009/otlp/v1/metrics
+
+service: 
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlphttp]
+    metrics: 
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlphttp]

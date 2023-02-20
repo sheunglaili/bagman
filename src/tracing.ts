@@ -10,10 +10,13 @@ import { containerDetector } from "@opentelemetry/resource-detector-container";
 import { SocketIoInstrumentation } from "opentelemetry-instrumentation-socket.io";
 import type { Socket } from "socket.io";
 
+import { randomUUID } from "crypto";
+
 const resource = Resource.default().merge(
     new Resource({
         [SemanticResourceAttributes.SERVICE_NAME]: "bagman",
-        [SemanticResourceAttributes.SERVICE_VERSION]: process.env.npm_package_version
+        [SemanticResourceAttributes.SERVICE_VERSION]: process.env.npm_package_version,
+        [SemanticResourceAttributes.SERVICE_INSTANCE_ID]: randomUUID()
     })
 );
 

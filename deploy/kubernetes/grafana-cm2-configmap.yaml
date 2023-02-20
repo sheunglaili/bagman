@@ -86,7 +86,7 @@ data:
                 "uid": "prometheus"
               },
               "editorMode": "builder",
-              "expr": "active_connetions_count",
+              "expr": "sum(active_connections_count)",
               "legendFormat": "__auto",
               "range": true,
               "refId": "A"
@@ -151,7 +151,7 @@ data:
                 "uid": "prometheus"
               },
               "editorMode": "builder",
-              "expr": "total_messages_count",
+              "expr": "sum(total_messages_count)",
               "legendFormat": "__auto",
               "range": true,
               "refId": "A"
@@ -235,7 +235,7 @@ data:
         "list": []
       },
       "time": {
-        "from": "now-30m",
+        "from": "now-6h",
         "to": "now"
       },
       "timepicker": {},
