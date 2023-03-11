@@ -25,7 +25,7 @@ describe('handle presence', () => {
         testServer.close();
     });
 
-    it.only('should populate presence data', async () => {
+    it('should populate presence data', async () => {
         testServer.server.registerHandlers();
 
         await testServer.clients(1, { auth: { 
