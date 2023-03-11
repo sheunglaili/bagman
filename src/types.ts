@@ -1,3 +1,4 @@
+import { Logger } from "pino";
 import type { Server, Socket } from "socket.io";
 
 export type ServerToClientEvents = {
@@ -46,5 +47,17 @@ export type SocketCountAck = {
 }
 export type SocketCountAckCallback = BaseAckCallback<SocketCountAck>;
 
-export type MainServer = Server<ServerToClientEvents, ClientToServerEvents, InterServerEvents, any>;
-export type MainSocket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, any>;
+export type SocketData = {
+    user: any
+    permissions: string[]
+}
+export type MainServer = Server<ServerToClientEvents, ClientToServerEvents, InterServerEvents, SocketData>;
+export type MainSocket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
+
+export type ServerContext = {
+    io: MainServer, 
+    logger: Logger
+}
+export type ConnectionContext = ServerContext & {
+    socket: MainSocket
+}

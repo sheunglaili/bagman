@@ -5,8 +5,14 @@ import { BagmanServer } from "./server";
 // load config
 dotenv.config();
 
+const doormanURL = process.env['DOORMAN_URL'];
+if (!doormanURL) {
+    console.log(`Missing Doorman URL, defaults to http://localhost:8081`)
+}
+
 const server = new BagmanServer({
     port: parseInt(process.env['PORT'] || "8080"),
+    doormanURL: doormanURL || "http://localhost:8081",
     redis: {
         host: process.env['REDIS_HOST'] || "localhost",
         port: parseInt(process.env['REDIS_PORT'] || "6379"),

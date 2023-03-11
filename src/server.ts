@@ -1,61 +1,62 @@
 import { createAdapter } from "@socket.io/redis-adapter";
 import { Redis, RedisOptions } from "ioredis";
-import pino, { Logger } from "pino";
+import pino from "pino";
 import { Server } from "socket.io";
 import otel from "@opentelemetry/api";
 import { App, us_listen_socket, us_listen_socket_close, us_socket_local_port } from "uWebSockets.js";
-import { ClientToServerEvents, InterServerEvents, MainServer, ServerToClientEvents } from "./types"
-import { registerChannelHandlers } from "./handlers/client";
-import { registerInterserverHandler } from "./handlers/interserver";
+import { ServerContext, InterServerEvents } from "./types"
+import { socketHandlers } from "./handlers/client";
+import { interServerHandlers } from "./handlers/interserver";
+import { presence } from "./presence";
+import { AuthAPI } from "./api";
 
 export type ServerConfig = {
     port?: number
     redis?: RedisOptions
+    doormanURL: string
 }
 
 export class BagmanServer {
 
     port: number;
+    api: AuthAPI;
     redisOptions: RedisOptions
-    io: MainServer;
+    ctx: ServerContext;
     app: ReturnType<typeof App>;
     listenedSocket?: us_listen_socket;
-    logger: Logger
 
-    constructor({ port = 8080, redis = {} }: ServerConfig = {}) {
+    constructor({ port = 8080, redis = {}, doormanURL }: ServerConfig) {
         this.port = port;
-        this.logger = pino();
         this.redisOptions = redis;
 
+        this.api = new AuthAPI(doormanURL);
         this.app = App();
-        this.io = new Server<
-            ServerToClientEvents,
-            ClientToServerEvents,
-            InterServerEvents,
-            any
-        >();
+        this.ctx = {
+            logger: pino(),
+            io: new Server()
+        }
         // use uWebSocket.js as underlying websocket implmentation
-        this.io.attachApp(this.app);
+        this.ctx.io.attachApp(this.app);
     }
 
     connectToRedis() {
-        this.logger.info(`connecting to redis ${this.redisOptions.host}:${this.redisOptions.port}`)
+        this.ctx.logger.info(`connecting to redis ${this.redisOptions.host}:${this.redisOptions.port}`)
 
         // connect to redis
         const pub = new Redis(this.redisOptions);
-        pub.on('connect', () => this.logger.info(`Pub client Connected to Redis ${this.redisOptions.host}:${this.redisOptions.port}`));
-        pub.on('error', (err) => this.logger.error(err, `Pub client failed to connect to Redis ${this.redisOptions.host}:${this.redisOptions.port}`));
+        pub.on('connect', () => this.ctx.logger.info(`Pub client Connected to Redis ${this.redisOptions.host}:${this.redisOptions.port}`));
+        pub.on('error', (err) => this.ctx.logger.error(err, `Pub client failed to connect to Redis ${this.redisOptions.host}:${this.redisOptions.port}`));
 
         const sub = pub.duplicate();
-        sub.on('connect', () => this.logger.info(`Sub client Connected to Redis ${this.redisOptions.host}:${this.redisOptions.port}`));
-        sub.on('error', (err) => this.logger.error(err, `Sub client failed to connect to Redis ${this.redisOptions.host}:${this.redisOptions.port}`));
+        sub.on('connect', () => this.ctx.logger.info(`Sub client Connected to Redis ${this.redisOptions.host}:${this.redisOptions.port}`));
+        sub.on('error', (err) => this.ctx.logger.error(err, `Sub client failed to connect to Redis ${this.redisOptions.host}:${this.redisOptions.port}`));
 
         // use redis adapter for cross cluster communication
-        this.io.adapter(createAdapter(pub, sub))
+        this.ctx.io.adapter(createAdapter(pub, sub))
     }
 
     registerMetrics() {
-        this.io.on('connection', (socket) => {
+        this.ctx.io.on('connection', (socket) => {
             const meter = otel.metrics.getMeter('bagman');
             const counter = meter.createUpDownCounter('active.connections.count');
             counter.add(1);
@@ -64,9 +65,28 @@ export class BagmanServer {
     };
 
     registerHandlers() {
-        registerInterserverHandler(this.io);
-        this.io.on('connection', (socket) => {
-            registerChannelHandlers(this.io, socket, this.logger)
+        // register interserver handlers
+        const serverHandlers = interServerHandlers(this.ctx);
+        for (const [serverEvent, serverHandler] of Object.entries(serverHandlers)) {
+            this.ctx.io.on(serverEvent as keyof InterServerEvents, serverHandler);
+        }
+        
+        // authenticate connection request with doorman
+        this.ctx.io.use(async (socket, next) => {
+            const isValid = await this.api.isValidToken(socket.handshake.auth.apiKey)
+            next(isValid ? undefined : new Error("Invalid API Key / Token."))
+        })
+        // register socket event handlers
+        this.ctx.io.on('connection', (socket) => {
+            const connectionCtx = { ...this.ctx, socket };
+            connectionCtx.socket.data = presence(connectionCtx); // populate presence data
+
+            console.log(socket.data);
+
+            const handlers = socketHandlers({ ...this.ctx, socket });
+            for (const [ev, handler] of Object.entries(handlers)) {
+                socket.on(ev, handler);
+            }
         })
     };
 
@@ -74,18 +94,17 @@ export class BagmanServer {
         this.app.listen(this.port, (listened: us_listen_socket) => {
             if (listened) {
                 this.listenedSocket = listened;
-                this.logger.info(`Listening on PORT ${this.port}`)
+                this.ctx.logger.info(`Listening on PORT ${this.port}`)
                 if (cb) cb(us_socket_local_port(listened));
             } else {
-                this.logger.error(`Failed to listen on PORT ${this.port}`)
+                this.ctx.logger.error(`Failed to listen on PORT ${this.port}`)
                 throw new Error(`Failed to listen on PORT ${this.port}`);
             }
-
         })
     }
 
     close() {
         if (this.listenedSocket) us_listen_socket_close(this.listenedSocket);
-        this.io.close();
+        this.ctx.io.close();
     }
 }

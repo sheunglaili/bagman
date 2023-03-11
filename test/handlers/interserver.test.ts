@@ -25,6 +25,7 @@ describe("interserver event handling", () => {
                     port: container.getMappedPort(PORT)
                 }
             });
+            testServer.mockValidTokenVerification();
             testServer.server.connectToRedis();
             testServer.listen();
             testServers.push(testServer);
@@ -54,7 +55,7 @@ describe("interserver event handling", () => {
         await wait((done) => clientsForServerOne[0].emit("client:subscribe", { channel: "test-channel" }, done));
 
         // should only get 2 sockets count from server 0
-        await expect(testServers[1].server.io.serverSideEmitWithAck("bagman:socket-counts", { channel: "test-channel" })).resolves.toEqual([
+        await expect(testServers[1].server.ctx.io.serverSideEmitWithAck("bagman:socket-counts", { channel: "test-channel" })).resolves.toEqual([
             { count: 2 }
         ]);
     });

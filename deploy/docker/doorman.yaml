@@ -1,0 +1,5 @@
+permissions:
+  - id: admin:channel
+    children:
+      - publish:channel
+      - subscribe:channel

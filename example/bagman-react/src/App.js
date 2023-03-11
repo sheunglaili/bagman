@@ -14,7 +14,11 @@ function App() {
   const bagmanRef = useRef(null);
   function getBagman() {
     if (bagmanRef.current === null) {
-      bagmanRef.current = new Bagman({ url: "http://localhost:8080/"});
+      bagmanRef.current = new Bagman({
+        url: "http://localhost:8080/",
+        // dummy api key
+        apiKey: "pk_eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwZXJtaXNzaW9ucyI6WyJwdWJsaXNoOmNoYW5uZWwiLCJzdWJzY3JpYmU6Y2hhbm5lbCJdLCJpYXQiOjE2NzgyMjExMTh9.GKy45kKD055K9pwY8DJjfRvjmCYc7gH4PQVVO9cxzjo"
+      });
     }
     return bagmanRef.current;
   }
@@ -52,7 +56,7 @@ function App() {
       console.log('listening for event ', event)
       await channel.listen(event, (message) => {
         console.log('received message', message);
-        setMessages((messages) => [...messages,  message ]);
+        setMessages((messages) => [...messages, message]);
       })
     }
   }
@@ -73,7 +77,7 @@ function App() {
       </nav>
       <div className="grid">
         <label for="channel">
-          Channel: 
+          Channel:
           <input type="text" name="channel" id="channel" onChange={onChannelChange} />
         </label>
         <button onClick={onSubscribe}>Subscribe</button>
@@ -81,7 +85,7 @@ function App() {
       </div>
       <div className="grid">
         <label for="event">
-          Event: 
+          Event:
           <input type="text" name="event" id="event" onChange={onEventChange} />
         </label>
         <button onClick={onListen}>Listen</button>
@@ -89,7 +93,7 @@ function App() {
       <div className="grid">
         <label for="data">
           Data:
-          <textarea style={{ resize: "vertical"}} name="data" id="data" onChange={onDataChange} />
+          <textarea style={{ resize: "vertical" }} name="data" id="data" onChange={onDataChange} />
         </label>
         <button onClick={onEmit}>Emit</button>
       </div>

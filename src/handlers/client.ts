@@ -1,10 +1,11 @@
-import type { Logger } from "pino";
 import otel from "@opentelemetry/api";
 
-import type { EmissionData, MainServer, MainSocket, SubscriptionData, UnsubscriptionData } from "../types";
+import type { ConnectionContext, EmissionData, SubscriptionData, UnsubscriptionData } from "../types";
 import { OperationError } from '../error';
 
-export function registerChannelHandlers(io: MainServer, socket: MainSocket, logger: Logger) {
+export function socketHandlers(ctx: ConnectionContext) {
+
+    const { io, socket, logger } = ctx;
 
     function wrap(handler: (...args: any[]) => void | Promise<void>) {
         return async function (...args: any[]) {
@@ -41,7 +42,7 @@ export function registerChannelHandlers(io: MainServer, socket: MainSocket, logg
         }
 
         // record metrics asynchorously
-        (async function() {
+        (async function () {
             const meter = otel.metrics.getMeter('bagman');
             const messagesCounter = meter.createCounter('total.messages.count')
 
@@ -63,11 +64,9 @@ export function registerChannelHandlers(io: MainServer, socket: MainSocket, logg
         socket.to(channel).emit(`${channel}:${event}`, data);
     }
 
-    socket.on('client:subscribe', wrap(onSubscribe));
-    socket.on('client:unsubscribe', wrap(onUnsubscribe));
-    socket.on('client:emit', wrap(onEmit));
-
-    socket.on('error', (reason) => console.log(reason))
-    socket.on('disconnecting', (reason) => console.log(reason));
-    socket.on('disconnect', (reason) => console.log(reason));
+    return {
+        'client:subscribe': wrap(onSubscribe),
+        'client:unsubscribe': wrap(onUnsubscribe),
+        'client:emit': wrap(onEmit)
+    }
 }

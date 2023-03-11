@@ -2,11 +2,12 @@ import { describe, afterAll, vi, expect, it, afterEach, beforeAll } from 'vitest
 import { TestServer } from "../test-server";
 import { wait } from "../utils";
 
-describe('registerClientChannels', () => {
+describe('handle client channel register', () => {
     let testServer: TestServer;
 
     beforeAll(() => new Promise(((done) => {
         testServer = new TestServer();
+        testServer.mockValidTokenVerification();
         testServer.listen(async () => {
             done();
         });
