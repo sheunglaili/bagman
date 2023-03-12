@@ -1,4 +1,4 @@
-import axios from "axios";
+import { request } from "undici";
 
 export class AuthAPI {
     constructor(private url: string) {
@@ -6,11 +6,11 @@ export class AuthAPI {
 
     async isValidToken(token: string): Promise<boolean> {
         
-        const resp = await axios.get(`${this.url}/token/verify`, {
-            params: {
+        const resp = await request(`${this.url}/token/verify`, {
+            query: {
                 apiKey: token
             }
         });
-        return resp.status === 200;
+        return resp.statusCode === 200;
     }
 }

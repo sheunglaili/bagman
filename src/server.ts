@@ -81,8 +81,6 @@ export class BagmanServer {
             const connectionCtx = { ...this.ctx, socket };
             connectionCtx.socket.data = presence(connectionCtx); // populate presence data
 
-            console.log(socket.data);
-
             const handlers = socketHandlers({ ...this.ctx, socket });
             for (const [ev, handler] of Object.entries(handlers)) {
                 socket.on(ev, handler);

@@ -1,6 +1,6 @@
 import otel from "@opentelemetry/api";
 
-import type { ConnectionContext, EmissionData, SubscriptionData, UnsubscriptionData } from "../types";
+import type { ConnectionContext, EmissionData, SocketCountAck, SubscriptionData, UnsubscriptionData } from "../types";
 import { OperationError } from '../error';
 
 export function socketHandlers(ctx: ConnectionContext) {
@@ -46,18 +46,10 @@ export function socketHandlers(ctx: ConnectionContext) {
             const meter = otel.metrics.getMeter('bagman');
             const messagesCounter = meter.createCounter('total.messages.count')
 
-            // calls to cluster servers to get sockets count for corresponding channel.
-            const totalClientsEmitted = await new Promise<number>((resolve) => {
-                io.serverSideEmit('bagman:socket-counts', { channel }, async (err, responses) => {
-                    if (err) {
-                        logger.error(`some server didn't respond with socket-counts: ${err}`)
-                    }
-                    const countsFromOtherNode = responses.reduce((prev, curr) => prev + curr.count, 0);
-                    const currentNodeCount = await socket.in(channel).local.fetchSockets().then(sockets => sockets.length);
-                    resolve(currentNodeCount + countsFromOtherNode);
-                });
-            })
-            messagesCounter.add(totalClientsEmitted);
+            // calls to cluster servers to record sockets count for corresponding channel.
+            await io.serverSideEmitWithAck('bagman:record-sockets-count', { channel });        
+            const currentNodeCount = await socket.in(channel).local.fetchSockets().then(sockets => sockets.length);
+            messagesCounter.add(currentNodeCount);
         })()
         // prefix event with channel to make sure global event are not leaked
         // into channel event

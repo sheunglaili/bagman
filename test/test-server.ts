@@ -1,6 +1,6 @@
 import { MainSocket } from "../src/types";
 
-import nock from "nock";
+import { MockAgent, MockPool, setGlobalDispatcher } from "undici";
 
 import Client, { ManagerOptions, SocketOptions } from "socket.io-client";
 import type { Socket } from "socket.io-client";
@@ -9,19 +9,25 @@ import { BagmanServer } from "../src/server";
 export class TestServer {
     server: BagmanServer;
     sockets: MainSocket[];
+    doormanMockPool: MockPool;
     port: number;
 
 
     constructor({ port = 0, redis = {} } = {}) {
         this.sockets = [];
+        const agent = new MockAgent();
+        setGlobalDispatcher(agent);
+
+        this.doormanMockPool = agent.get("http://doorman:8080")
+
         this.server = new BagmanServer({ port, redis, doormanURL: "http://doorman:8080" });
     }
 
     mockValidTokenVerification() {
-        nock("http://doorman:8080")
-        .get(/^\/token\/verify/)
-        .reply(200)
-        .persist()
+        this.doormanMockPool.intercept({
+            path: /^\/token\/verify/
+        }).reply(200)
+          .persist();
     }
 
     listen(cb?: () => void) {

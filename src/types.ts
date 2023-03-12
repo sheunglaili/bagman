@@ -12,7 +12,7 @@ export type ClientToServerEvents = {
 }
 
 export type InterServerEvents = {
-    'bagman:socket-counts': (data: SocketCountData, cb: SocketCountAckCallback) => Promise<void> | void;
+    'bagman:record-sockets-count': (data: SocketCountData, ack: SocketCountAckCallback) => Promise<void> | void;
 }
 
 export type BaseAck = {
@@ -42,9 +42,7 @@ export type EmissionAckCallback = BaseAckCallback<EmissionAck>;
 export type SocketCountData = {
     channel: string
 }
-export type SocketCountAck = {
-    count: number
-}
+export type SocketCountAck = BaseAck
 export type SocketCountAckCallback = BaseAckCallback<SocketCountAck>;
 
 export type SocketData = {

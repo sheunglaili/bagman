@@ -12,7 +12,10 @@ let messagesSinceLastReport = 0;
 const createClient = async () => {
 
     try {
-        const client = new Bagman({ url: URL });
+        const client = new Bagman({ 
+            url: URL,
+            apiKey: "pk_eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwZXJtaXNzaW9ucyI6WyJwdWJsaXNoOmNoYW5uZWwiLCJzdWJzY3JpYmU6Y2hhbm5lbCJdLCJpYXQiOjE2NzgyMjExMTh9.GKy45kKD055K9pwY8DJjfRvjmCYc7gH4PQVVO9cxzjo"
+        });
 
         const channel = await client.subscribe("testing channel");
 

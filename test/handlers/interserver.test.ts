@@ -1,9 +1,26 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
+import otel from "@opentelemetry/api";
 import { GenericContainer, StartedTestContainer } from "testcontainers";
 import { TestServer } from "../test-server";
 import { wait } from "../utils";
 import type { Socket } from "socket.io-client";
+
+vi.mock("@opentelemetry/api", () => {
+    const counter = {
+        add: vi.fn()
+    };
+    const meter = {
+        createCounter: vi.fn(() => counter)
+    };
+    return {
+        default: {
+            metrics: {
+                getMeter: vi.fn(() => meter)
+            }
+        }
+    }
+})
 
 describe("interserver event handling", () => {
 
@@ -55,9 +72,11 @@ describe("interserver event handling", () => {
         await wait((done) => clientsForServerOne[0].emit("client:subscribe", { channel: "test-channel" }, done));
 
         // should only get 2 sockets count from server 0
-        await expect(testServers[1].server.ctx.io.serverSideEmitWithAck("bagman:socket-counts", { channel: "test-channel" })).resolves.toEqual([
-            { count: 2 }
-        ]);
+        await testServers[1].server.ctx.io.serverSideEmitWithAck("bagman:record-sockets-count", { channel: "test-channel" });
+
+        const meter = otel.metrics.getMeter("");
+        const counter = meter.createCounter("");
+        expect(vi.mocked(counter.add)).toBeCalled();
     });
 
 })
