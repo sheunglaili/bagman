@@ -60,7 +60,7 @@ describe('handle client channel register', () => {
 
         const clients = await testServer.clients(2);
 
-        const didClientReceiveBroadcast = wait((done) => clients[1]!.on(`${channel}:${event}`, done))
+        const didClientReceiveBroadcast = wait((done) => clients[1]!.on(`channel:${channel}:${event}`, done))
         await wait((done) => clients[0]!.emit('client:subscribe', { channel }, done));
         await wait((done) => clients[1]!.emit('client:subscribe', { channel }, done));
         await wait((done) => clients[0]!.emit('client:emit', { channel, event, data }, done));

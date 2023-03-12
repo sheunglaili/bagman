@@ -1,14 +1,19 @@
 import { Logger } from "pino";
 import type { Server, Socket } from "socket.io";
 
+type JoinChannelEvent = `channel:${string}:presence:joined`;
+type LeaveChannelEvent = `channel:${string}:presence:left`;
+
 export type ServerToClientEvents = {
-    [event: string]: (event: string, ...args: any[]) => void
+    [event: JoinChannelEvent | LeaveChannelEvent]: (presence: Presence) => void
+    [event: string]: (...args: any[]) => void
 }
 
 export type ClientToServerEvents = {
     'client:subscribe': (subscriptionData: SubscriptionData, cb: SubscriptionAckCallback) => Promise<void> | void;
     'client:unsubscribe': (subscriptionData: UnsubscriptionData, cb: UnsubscriptionAckCallback) => Promise<void> | void;
     'client:emit': (emissionData: EmissionData, cb: EmissionAckCallback) => Promise<void> | void;
+    'presence:fetch': (presenceFetchData: FetchPresenceData, cb: FetchPresenceAckCallback) => Promise<void> | void;
 }
 
 export type InterServerEvents = {
@@ -38,6 +43,20 @@ export type EmissionData<Data = any> = {
 };
 export type EmissionAck = BaseAck;
 export type EmissionAckCallback = BaseAckCallback<EmissionAck>;
+
+export type Presence = {
+    id: string;
+    user: SocketData['user']
+}
+
+export type FetchPresenceData = { 
+    channel: string
+}
+export type FetchPresenceAck = {
+    presences: Presence[]
+} | BaseAck
+
+export type FetchPresenceAckCallback = BaseAckCallback<FetchPresenceAck>;
 
 export type SocketCountData = {
     channel: string

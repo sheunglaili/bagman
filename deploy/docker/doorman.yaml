@@ -3,3 +3,6 @@ permissions:
     children:
       - publish:channel
       - subscribe:channel
+  - id: admin:presence
+    children: 
+      - read:presence
